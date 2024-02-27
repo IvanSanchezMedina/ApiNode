@@ -31,8 +31,6 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke! JAJAJA');
 });
 
-
-
 app.use(express.json())
 app.use(usuariosRoutes)
 app.use(accessRoutes)

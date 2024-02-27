@@ -101,3 +101,104 @@ export const verifyToken = (req, res, next) => {
         next();
     });
 };
+
+
+function isValidString(str) {
+    const regex = /^[a-zA-Z\s]+$/;
+    return regex.test(str) && str.trim() !== '';
+  }
+
+  function isValidEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  }
+  
+  function isValidPassword(password) {
+    return password.length >= 6;
+  }
+  
+  function isValidSource(source) {
+    return source === 'local' || source === 'web';
+  }
+  
+  function isValidType(type) {
+    return type === 'admin' || type === 'author' || type === 'user';
+  }
+
+export const register = async(req, res)=>{
+    console.log(req.body)
+
+    const {first_name,last_name,email,username, password, source,type} = req.body
+  
+    if (!isValidString(first_name)) {
+      return res.status(400).send({ error: 'First name is not a valid string' });
+    }
+    if (!isValidString(last_name)) {
+      return res.status(400).send({ error: 'Last name is not a valid string' });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).send({ error: 'Email is not a valid email' });
+    }
+
+    try {
+
+      // throw new Error ('My Error')
+      const [user] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+      if (user.length > 0) {
+        return res.status(400).send({ error: 'Email already exists' });
+      }
+    } catch (error) {
+      return res.status(500).json({
+          message:"Algo salio mal al verificar el usuario"
+      })
+    }
+   
+
+    if (!isValidString(username)) {
+      return res.status(400).send({ error: 'Username is not a valid string' });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).send({ error: 'Password must be at least 6 characters long' });
+    }
+
+    if (!isValidSource(source)) {
+      return res.status(400).send({ error: 'Source must be either "local" or "web"' });
+    }
+
+    if (!isValidType(type)) {
+      return res.status(400).send({ error: 'Type must be either "admin", "author" or "user"' });
+    }
+
+    // Hash the password using SHA-512
+    const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
+    
+    try {
+
+          //   throw new Error ('My Error')
+      const [rows]= await pool.query('INSERT INTO users(first_name,last_name,email,username,password,source,type, created_at) VALUES(?,?,?,?,?,?,?, NOW())',
+      [first_name,last_name,email,username, hashedPassword, source,type])
+    // Generar el token JWT
+    const token = jwt.sign({ email: email, id:rows.insertId }, 'tu_secreto_jwt', { expiresIn: '1h' });
+
+      res.send({
+        token:token,
+        id:rows.insertId,
+        first_name,
+        last_name,
+        username,
+        email, 
+        password: hashedPassword,
+        source,
+        type
+    })
+    
+      } catch (error) {
+          return res.status(500).json({
+             message:"Algo salio mal al guardar el usuario"
+          })
+      }
+  
+   
+}
