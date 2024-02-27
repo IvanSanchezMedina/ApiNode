@@ -1,12 +1,13 @@
 import { Router } from "express";
 import {getUsuarios,createUsuario,putUsuarios,deleteUsuarios,getUsuario} from "../controllers/usuarios.controllers.js";
+import { verifyToken } from "../controllers/access.controllers.js";
+ 
 const router = Router()
 
-// router.post('/register', userController.register);
-router.get('/usuarios',getUsuarios)
-router.get('/usuarios/:id',getUsuario)
-router.post('/usuarios',createUsuario)
-router.patch('/usuarios/:id',putUsuarios)
-router.delete('/usuarios/:id',deleteUsuarios)
+router.get('/usuarios',verifyToken,getUsuarios)
+router.get('/usuarios/:id',verifyToken,getUsuario)
+router.post('/usuarios',verifyToken,createUsuario)
+router.patch('/usuarios/:id',verifyToken,putUsuarios)
+router.delete('/usuarios/:id',verifyToken,deleteUsuarios)
  
 export default router

@@ -1,36 +1,22 @@
 import express from "express";
-import indexRoutes from "../src/routes/index.routes.js"
 import usuariosRoutes from "../src/routes/usuarios.routes.js"
 import bodyParser from "body-parser";
 import accessRoutes from "../src/routes/access.routes.js"
-import passport from "passport";
-import session from 'express-session';
-import MySQLStoreFactory from 'express-mysql-session';
+import userSession  from "./controllers/sessions.controller.js";
 
-const MySQLStore = MySQLStoreFactory(session);
+const app = express();
 
-const app = express()
+app.use(userSession)
 
-// Configuración de la sesión
-app.use(session({
-    key: 'session_cookie_name',
-    secret: 'session_cookie_secret',
-    store: new MySQLStore({
-        host: 'localhost',
-        port: 3306,
-        user: 'root',
-        database: 'cookie_user'
-    }),
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24
-    }
-}));
-
-// Configuración de Passport
-app.use(passport.initialize());
-app.use(passport.session());
+app.get('/', (req,res)=>{
+    // req.session.usuario='Ivan';
+    // req.session.rol='Admin';
+    // req.session.visitas= req.session.visitas? ++req.session.visitas:1;
+    // console.log(req.session)
+    // res.send(`El usuario <strong>${req.session.usuario}</strong> con el rol <strong> ${req.session.rol} </strong> tiene un total de 
+    // <strong> ${req.session.visitas} </strong> visitas`)
+    res.send("Hola Mundo");
+})
 
 // Parseo del cuerpo de las solicitudes
 app.use(bodyParser.json());
@@ -39,14 +25,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Configuración de las vistas
 app.set('view engine', 'ejs');
 
-
-
-
-
 // Manejo de errores
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!JAJAJA');
+    res.status(500).send('Something broke! JAJAJA');
 });
 
 
@@ -54,7 +36,6 @@ app.use((err, req, res, next) => {
 app.use(express.json())
 app.use(usuariosRoutes)
 app.use(accessRoutes)
-app.use(indexRoutes)
 
 app.use((req, res, next)=>{
 res.status(404).send({message: 'No se encontró la ruta'})

@@ -1,10 +1,7 @@
-
-
-
 import { pool } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-
+import userSession from '../controllers/sessions.controller.js';
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -24,19 +21,25 @@ export const login = async (req, res) => {
         if (hashedPassword !== user.password) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
+        
 
         // Generar el token JWT
         const token = jwt.sign({ email: user.email, id: user.id }, 'tu_secreto_jwt', { expiresIn: '1h' });
 
-        // Si las credenciales son válidas, enviar la información del usuario con el token
-        res.status(200).json({
+        const data = {
             token: token,
             id: user.id,
             email: user.email,
             nombre: user.first_name,
             apellido: user.last_name,
             tipo: user.type
-        });
+        }
+        // Si las credenciales son válidas, enviar la información del usuario con el token
+        res.status(200).json(data);
+
+         // Guardar los datos del usuario en la sesión
+        req.session.user = data
+        
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         res.status(500).json({
@@ -45,6 +48,7 @@ export const login = async (req, res) => {
     }
 };
 
+export const loginWithSession = [userSession, login];
 
 // Crear una lista negra de tokens
 const blacklistedTokens = new Set();
@@ -72,3 +76,18 @@ export const logout = (req, res) => {
     }
 };
 
+export const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
+
+    if (!token) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+
+    jwt.verify(token, 'tu_secreto_jwt', (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Token inválido' });
+        }
+        req.user = decoded; // Agregar el usuario decodificado al objeto de solicitud
+        next();
+    });
+};
