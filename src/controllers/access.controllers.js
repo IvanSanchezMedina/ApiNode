@@ -39,7 +39,7 @@ export const login = async (req, res) => {
 
          // Guardar los datos del usuario en la sesión
         req.session.user = data
-        
+
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         res.status(500).json({
@@ -67,6 +67,16 @@ export const blacklistMiddleware = (req, res, next) => {
 // Función de logout para agregar tokens a la lista negra
 export const logout = (req, res) => {
     const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
+        
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error al cerrar sesión:', err);
+            return res.status(500).json({ message: 'Error al cerrar sesión' });
+        }
+        
+        // Si la sesión se ha eliminado correctamente, enviar una respuesta exitosa
+        // return res.status(200).json({ message: 'Logout exitoso' });
+    });
 
     if (token) {
         blacklistedTokens.add(token);
