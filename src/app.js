@@ -6,7 +6,6 @@ import accessRoutes from "../src/routes/access.routes.js"
 import passport from "passport";
 import session from 'express-session';
 import MySQLStoreFactory from 'express-mysql-session';
-import authRoutes  from '../src/routes/auth.routes.js';
 
 const MySQLStore = MySQLStoreFactory(session);
 
@@ -42,21 +41,21 @@ app.set('view engine', 'ejs');
 
 
 
-app.use(authRoutes)
-// app.use('/', userRoutes);
+
 
 // Manejo de errores
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!');
+    res.status(500).send('Something broke!JAJAJA');
 });
 
 
 
 app.use(express.json())
 app.use(usuariosRoutes)
+app.use(accessRoutes)
 app.use(indexRoutes)
-// app.use(accessRoutes)
+
 app.use((req, res, next)=>{
 res.status(404).send({message: 'No se encontró la ruta'})
 })
