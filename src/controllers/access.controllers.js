@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import userSession from '../controllers/sessions.controller.js';
+import userSession from './sessions.controllers.js';
 
 export const login = async (req, res) => {
     const { email, password } = req.body;

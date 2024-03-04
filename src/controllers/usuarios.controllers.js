@@ -1,4 +1,3 @@
-import { error } from "console";
 import { pool } from "../db.js";
 import crypto from 'crypto';
 
