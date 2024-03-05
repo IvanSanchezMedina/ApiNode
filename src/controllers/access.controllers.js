@@ -130,12 +130,12 @@ export const register = async(req, res)=>{
 
     const {first_name,last_name,email,username, password, source,type} = req.body
   
-    if (!isValidString(first_name)) {
-      return res.status(400).send({ error: 'First name is not a valid string' });
-    }
-    if (!isValidString(last_name)) {
-      return res.status(400).send({ error: 'Last name is not a valid string' });
-    }
+    // if (!isValidString(first_name)) {
+    //   return res.status(400).send({ error: 'First name is not a valid string' });
+    // }
+    // if (!isValidString(last_name)) {
+    //   return res.status(400).send({ error: 'Last name is not a valid string' });
+    // }
 
     if (!isValidEmail(email)) {
       return res.status(400).send({ error: 'Email is not a valid email' });

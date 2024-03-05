@@ -4,9 +4,12 @@ import bodyParser from "body-parser";
 import accessRoutes from "../src/routes/access.routes.js"
 import userSession  from "./controllers/sessions.controllers.js"
 import seriesRoutes from "../src/routes/series.routes.js"
-
+import cors from "cors"
 const app = express();
 
+app.use(cors({
+    origin:"http://localhost:5173"
+}));
 app.use(userSession)
 
 app.get('/', (req,res)=>{
