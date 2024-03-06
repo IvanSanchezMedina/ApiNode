@@ -2,6 +2,7 @@ import { pool } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import userSession from './sessions.controllers.js';
+import { error } from 'console';
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -129,7 +130,8 @@ export const register = async(req, res)=>{
     console.log(req.body)
 
     const {first_name,last_name,email,username, password, source,type} = req.body
-  
+    const errors = [];
+
     // if (!isValidString(first_name)) {
     //   return res.status(400).send({ error: 'First name is not a valid string' });
     // }
@@ -138,7 +140,8 @@ export const register = async(req, res)=>{
     // }
 
     if (!isValidEmail(email)) {
-      return res.status(400).send({ error: 'Email is not a valid email' });
+      // return res.status(400).send({ message: ['Email is not a valid email'] });
+      errors.push('Email is not a valid email');
     }
 
     try {
@@ -146,30 +149,35 @@ export const register = async(req, res)=>{
       // throw new Error ('My Error')
       const [user] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
       if (user.length > 0) {
-        return res.status(400).send({ error: 'Email already exists' });
+        errors.push('Email already exists');
+        // return res.status(400).send({ message: 'Email already exists' });
       }
     } catch (error) {
-      return res.status(500).json({
-          message:"Algo salio mal al verificar el usuario"
-      })
+      return res.status(500).json(["Algo salio mal al verificar el usuario"])
     }
    
 
-    if (!isValidString(username)) {
-      return res.status(400).send({ error: 'Username is not a valid string' });
+   if (!isValidString(username)) {
+        errors.push('Username is not a valid string');
     }
 
     if (!isValidPassword(password)) {
-      return res.status(400).send({ error: 'Password must be at least 6 characters long' });
+        errors.push('Password must be at least 6 characters long');
     }
 
     if (!isValidSource(source)) {
-      return res.status(400).send({ error: 'Source must be either "local" or "web"' });
+        errors.push('Source must be either "local" or "web"');
     }
 
     if (!isValidType(type)) {
-      return res.status(400).send({ error: 'Type must be either "admin", "author" or "user"' });
+        errors.push('Type must be either "admin", "author" or "user"');
     }
+
+    if (errors.length > 0) {
+      console.log(errors)
+      return res.status(400).json(errors);
+    }
+
 
     // Hash the password using SHA-512
     const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
@@ -195,9 +203,7 @@ export const register = async(req, res)=>{
     })
     
       } catch (error) {
-          return res.status(500).json({
-             message:"Algo salio mal al guardar el usuario"
-          })
+          return res.status(500).json(["Algo salio mal al guardar el usuario, lo resolveremos pronto"])
       }
   
    
