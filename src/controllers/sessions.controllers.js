@@ -25,13 +25,15 @@ const options = {
 
 const sessionStore = new MySQLStore(options);
 
-const userSession = session({
+const userSession = session(
+    {
     key: 'cookie_usuario',
     secret:'123123123',
     store: sessionStore,
     resave: false,
     saveUninitialized: true,
-});
+}
+);
 
 export default userSession;
 

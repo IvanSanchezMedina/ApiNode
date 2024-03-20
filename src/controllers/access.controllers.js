@@ -35,6 +35,8 @@ export const login = async (req, res) => {
             apellido: user.last_name,
             tipo: user.type
         }
+
+        res.cookie("token",token)
         // Si las credenciales son válidas, enviar la información del usuario con el token
         res.status(200).json(data);
 
@@ -86,6 +88,31 @@ export const logout = (req, res) => {
         return res.status(400).json({ message: 'Token no proporcionado' });
     }
 };
+
+export const verifyTokenRequest = (req, res, next) => {
+    // const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
+    const token = req.headers.cookie.split('token=')[1].split(';')[0].trim();
+
+
+    if (!token) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+
+    jwt.verify(token, 'tu_secreto_jwt',async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Token inválido' });
+        }
+        // return res.json({
+
+        // })
+       req.user = decoded; // Agregar el usuario decodificado al objeto de solicitud
+      
+        // next();
+
+        return res.json(decoded);
+    });
+};
+
 
 export const verifyToken = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
