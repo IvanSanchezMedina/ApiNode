@@ -10,7 +10,7 @@ export const login = async (req, res) => {
     try {
         // Buscar usuario por email
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-      
+
         if (rows.length === 0) {
             return res.status(401).json({ message: 'No se encuentra usuario con ese correo' });
         }
@@ -22,25 +22,37 @@ export const login = async (req, res) => {
         if (hashedPassword !== user.password) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
-        
+
 
         // Generar el token JWT
-        const token = jwt.sign({ email: user.email, id: user.id }, 'tu_secreto_jwt', { expiresIn: '1h' });
+        const token = jwt.sign({
+            email: user.email,
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            type: user.type,
+            username: user.username,
+            source: user.source,
+            type: user.type
+        }, 'tu_secreto_jwt', { expiresIn: '1h' });
 
         const data = {
             token: token,
             id: user.id,
             email: user.email,
-            nombre: user.first_name,
-            apellido: user.last_name,
-            tipo: user.type
+            first_name: user.first_name,
+            last_name: user.last_name,
+            type: user.type,
+            username: user.username,
+            source: user.source,
+            type: user.type
         }
 
-        res.cookie("token",token)
+        res.cookie("token", token)
         // Si las credenciales son válidas, enviar la información del usuario con el token
         res.status(200).json(data);
 
-         // Guardar los datos del usuario en la sesión
+        // Guardar los datos del usuario en la sesión
         req.session.user = data
 
     } catch (error) {
@@ -70,13 +82,13 @@ export const blacklistMiddleware = (req, res, next) => {
 // Función de logout para agregar tokens a la lista negra
 export const logout = (req, res) => {
     const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
-        
+
     req.session.destroy((err) => {
         if (err) {
             console.error('Error al cerrar sesión:', err);
             return res.status(500).json({ message: 'Error al cerrar sesión' });
         }
-        
+
         // Si la sesión se ha eliminado correctamente, enviar una respuesta exitosa
         // return res.status(200).json({ message: 'Logout exitoso' });
     });
@@ -98,15 +110,15 @@ export const verifyTokenRequest = (req, res, next) => {
         return res.status(401).json({ message: 'Token no proporcionado' });
     }
 
-    jwt.verify(token, 'tu_secreto_jwt',async (err, decoded) => {
+    jwt.verify(token, 'tu_secreto_jwt', async (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: 'Token inválido' });
         }
         // return res.json({
 
         // })
-       req.user = decoded; // Agregar el usuario decodificado al objeto de solicitud
-      
+        req.user = decoded; // Agregar el usuario decodificado al objeto de solicitud
+
         // next();
 
         return res.json(decoded);
@@ -134,29 +146,29 @@ export const verifyToken = (req, res, next) => {
 function isValidString(str) {
     const regex = /^[a-zA-Z\s]+$/;
     return regex.test(str) && str.trim() !== '';
-  }
+}
 
-  function isValidEmail(email) {
+function isValidEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
-  }
-  
-  function isValidPassword(password) {
-    return password.length >= 6;
-  }
-  
-  function isValidSource(source) {
-    return source === 'local' || source === 'web';
-  }
-  
-  function isValidType(type) {
-    return type === 'admin' || type === 'author' || type === 'user';
-  }
+}
 
-export const register = async(req, res)=>{
+function isValidPassword(password) {
+    return password.length >= 6;
+}
+
+function isValidSource(source) {
+    return source === 'local' || source === 'web';
+}
+
+function isValidType(type) {
+    return type === 'admin' || type === 'author' || type === 'user';
+}
+
+export const register = async (req, res) => {
     console.log(req.body)
 
-    const {first_name,last_name,email,username, password, source,type} = req.body
+    const { first_name, last_name, email, username, password, source, type } = req.body
     const errors = [];
 
     // if (!isValidString(first_name)) {
@@ -167,24 +179,24 @@ export const register = async(req, res)=>{
     // }
 
     if (!isValidEmail(email)) {
-      // return res.status(400).send({ message: ['Email is not a valid email'] });
-      errors.push('Email is not a valid email');
+        // return res.status(400).send({ message: ['Email is not a valid email'] });
+        errors.push('Email is not a valid email');
     }
 
     try {
 
-      // throw new Error ('My Error')
-      const [user] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-      if (user.length > 0) {
-        errors.push('Email already exists');
-        // return res.status(400).send({ message: 'Email already exists' });
-      }
+        // throw new Error ('My Error')
+        const [user] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (user.length > 0) {
+            errors.push('Email already exists');
+            // return res.status(400).send({ message: 'Email already exists' });
+        }
     } catch (error) {
-      return res.status(500).json(["Algo salio mal al verificar el usuario"])
+        return res.status(500).json(["Algo salio mal al verificar el usuario"])
     }
-   
 
-   if (!isValidString(username)) {
+
+    if (!isValidString(username)) {
         errors.push('Username is not a valid string');
     }
 
@@ -201,37 +213,55 @@ export const register = async(req, res)=>{
     }
 
     if (errors.length > 0) {
-      console.log(errors)
-      return res.status(400).json(errors);
+        console.log(errors)
+        return res.status(400).json(errors);
     }
 
 
     // Hash the password using SHA-512
     const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
-    
+
     try {
 
-          //   throw new Error ('My Error')
-      const [rows]= await pool.query('INSERT INTO users(first_name,last_name,email,username,password,source,type, created_at) VALUES(?,?,?,?,?,?,?, NOW())',
-      [first_name,last_name,email,username, hashedPassword, source,type])
-    // Generar el token JWT
-    const token = jwt.sign({ email: email, id:rows.insertId }, 'tu_secreto_jwt', { expiresIn: '1h' });
+        //   throw new Error ('My Error')
+        const [rows] = await pool.query('INSERT INTO users(first_name,last_name,email,username,password,source,type, created_at) VALUES(?,?,?,?,?,?,?, NOW())',
+            [first_name, last_name, email, username, hashedPassword, source, type])
 
-      res.send({
-        token:token,
-        id:rows.insertId,
-        first_name,
-        last_name,
-        username,
-        email, 
-        password: hashedPassword,
-        source,
-        type
-    })
     
-      } catch (error) {
-          return res.status(500).json(["Algo salio mal al guardar el usuario, lo resolveremos pronto"])
-      }
-  
-   
+        const token = jwt.sign({
+            email: email,
+            id: rows.insertId,
+            first_name,
+            last_name,
+            type,
+            username,
+            source,
+            type
+          
+        }, 'tu_secreto_jwt', { expiresIn: '1h' });
+
+        const data = {
+            token: token,
+            id: rows.insertId,
+            first_name,
+            last_name,
+            type,
+            username,
+            source,
+            type
+        }
+        // Generar el token JWT
+
+        res.cookie("token", token)
+        // Si las credenciales son válidas, enviar la información del usuario con el token
+        res.status(200).json(data);
+
+        // Guardar los datos del usuario en la sesión
+        req.session.user = data
+
+    } catch (error) {
+        return res.status(500).json(["Algo salio mal al guardar el usuario, lo resolveremos pronto"])
+    }
+
+
 }
