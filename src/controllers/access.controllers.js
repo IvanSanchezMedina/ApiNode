@@ -33,7 +33,8 @@ export const login = async (req, res) => {
             type: user.type,
             username: user.username,
             source: user.source,
-            type: user.type
+            type: user.type,
+            avatar: user.avatar
         }, 'tu_secreto_jwt', { expiresIn: '1h' });
 
         const data = {
@@ -45,7 +46,8 @@ export const login = async (req, res) => {
             type: user.type,
             username: user.username,
             source: user.source,
-            type: user.type
+            type: user.type,
+            avatar: user.avatar
         }
 
         res.cookie("token", token)
@@ -229,7 +231,8 @@ export const register = async (req, res) => {
             type,
             username,
             source,
-            type
+            type,
+            avatar
           
         }, 'tu_secreto_jwt', { expiresIn: '1h' });
 
