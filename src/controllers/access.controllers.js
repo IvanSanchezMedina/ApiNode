@@ -81,16 +81,14 @@ export const blacklistMiddleware = (req, res, next) => {
 
 // Función de logout para agregar tokens a la lista negra
 export const logout = (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
-
+    // const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
+    const token = req.headers.cookie.split('token=')[1].split(';')[0].trim();
+    console.log(token)
     req.session.destroy((err) => {
         if (err) {
             console.error('Error al cerrar sesión:', err);
             return res.status(500).json({ message: 'Error al cerrar sesión' });
         }
-
-        // Si la sesión se ha eliminado correctamente, enviar una respuesta exitosa
-        // return res.status(200).json({ message: 'Logout exitoso' });
     });
 
     if (token) {
@@ -114,12 +112,7 @@ export const verifyTokenRequest = (req, res, next) => {
         if (err) {
             return res.status(401).json({ message: 'Token inválido' });
         }
-        // return res.json({
-
-        // })
         req.user = decoded; // Agregar el usuario decodificado al objeto de solicitud
-
-        // next();
 
         return res.json(decoded);
     });
