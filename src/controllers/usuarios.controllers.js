@@ -75,7 +75,6 @@ export const getUsuario = async(req, res) => {
   }
   
   export const createUsuario = async(req, res)=>{
-      console.log(req.body)
   
       const {first_name,last_name,email,username, password, source,type} = req.body
     

@@ -85,7 +85,6 @@ export const blacklistMiddleware = (req, res, next) => {
 export const logout = (req, res) => {
     // const token = req.headers.authorization?.split(' ')[1]; // Obtener el token del encabezado de autorización
     const token = req.headers.cookie.split('token=')[1].split(';')[0].trim();
-    console.log(token)
     req.session.destroy((err) => {
         if (err) {
             console.error('Error al cerrar sesión:', err);
@@ -161,7 +160,6 @@ function isValidType(type) {
 }
 
 export const register = async (req, res) => {
-    console.log(req.body)
 
     const { first_name, last_name, email, username, password, source, type } = req.body
     const errors = [];
@@ -208,7 +206,6 @@ export const register = async (req, res) => {
     }
 
     if (errors.length > 0) {
-        console.log(errors)
         return res.status(400).json(errors);
     }
 
