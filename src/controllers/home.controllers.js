@@ -29,3 +29,205 @@ export const getHomeSlide = async (req, res) => {
         return res.status(500).json({ error: 'Failed to get home slide' });
     }
 }
+
+
+export const getHomeBlocks = async (req, res) => {
+    try {
+        const language = req.params.language || 'es'
+        // Consulta para obtener los bloques de configuración necesarios
+        const [blocksData] = await pool.query("SELECT value FROM configuration_blocks WHERE name IN ('blocks', CONCAT('desktop_', ?))", [language]);
+           
+        const allBlocks  = JSON.parse(blocksData[0].value).reduce((acc, cur) => {
+            acc[cur.id] = cur;
+            return acc;
+        }, {});
+        // const allBlocks  = JSON.parse(blocksData[0].value).map(block =>
+        //      block.id
+        //      );
+        const blocksIDs = JSON.parse(blocksData[1].value).map(block => block.id);
+        
+        // Crear un objeto donde las claves son los ids de los bloques y los valores son los bloques en sí
+            const blocksDataMap = JSON.parse(blocksData[0].value).reduce((acc, block) => {
+                acc[block.id] = block;
+                return acc;
+            }, {});
+        
+      
+
+            const blocks = [];
+
+            for (const blockID of blocksIDs) {
+                const blockData = blocksDataMap[blockID];
+                if (blockData) {
+                    let block = {
+                        name: blockData.name,
+                        type: blockData.type,
+                        id: blockData.id,
+                    };
+            
+                    if (isContentBlock(blockData.type)) {
+                        try {
+                            block.series = await getBlockContent(blockData);
+                        } catch (error) {
+                            console.error('Error fetching block content:', error);
+                            block.series = [];
+                        }
+                    } else {
+                        block = getBlockBanner(blockData, block);
+                    }
+            
+                    blocks.push(block);
+                }
+            }
+            
+            res.json(blocks);
+                    
+    } catch (error) {
+
+
+        console.error('Failed to get home blocks:', error);
+        return res.status(500).json({ error: 'Failed to get home blocks' });
+    }
+}
+
+function isContentBlock(type) {
+    return (type != '4' && type != '5');
+}
+
+async function getBlockContent(block) {
+    const typeHandlers = {
+        '1': getSeriesByGenre,
+        '2': getSeriesByTags,
+        '3': getSeriesByGroup,
+        '6': getSeriesByGroupSchedule
+    };
+
+    if (typeHandlers.hasOwnProperty(block.type)) {
+        const handler = typeHandlers[block.type];
+        try {
+            const result = await handler(block);
+            console.log(result)
+            return result;
+        } catch (error) {
+            console.error('Error in handler:', error);
+            return [];
+        }
+    } else {
+        return [];
+    }
+}
+
+async function getSeriesByGroup(block) {
+    const order = getBlockContentOrder(block.order);
+
+    const reversedSeries = block.series.slice().reverse();
+
+    const [seriesData] = await pool.query("SELECT id,name,image FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
+
+    return seriesData;
+}
+
+
+async function getSeriesByGroupSchedule(block) {
+    const reversedSeries = block.series.slice().reverse();
+   
+    let series = [];
+
+    if (reversedSeries.length > 0) {
+        const [seriesData] = await pool.query("SELECT id,name,image FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
+        
+        series = seriesData;
+        
+    }
+   
+    return series;
+}
+
+
+
+function getBlockBanner(blockContent, block) {
+    switch (blockContent.type) {
+        case '4':
+            block.img1 = blockContent.img1;
+            block.url1 = blockContent.url1;
+            return block;
+        case '5':
+            block.img1 = blockContent.img1;
+            block.url1 = blockContent.url1;
+            block.img2 = blockContent.img2;
+            block.url2 = blockContent.url2;
+            return block;
+        default:
+            return block;
+    }
+}
+
+async function getSeriesByGenre(block) {
+    const order = getBlockContentOrder(block.order);
+
+    let query = Serie.find({ 
+        genre_id: parseInt(block.genre), 
+        status: { $ne: 'Deleted' } 
+    });
+
+    const langContent = 'both'; // Assuming you handle the language in a similar way in Node.js
+    if (langContent !== 'both') {
+        query = query.where('language_id').equals(langContent);
+    }
+
+    const series = await query
+        .sort([[order[0], order[1]]])
+        .limit(parseInt(block.quantity))
+        .select('id name image')
+        .exec();
+
+    return series;
+}
+
+async function getSeriesByTags(block) {
+    const order = getBlockContentOrder(block.order);
+
+    let seriesInTags = [];
+
+    for (const tag of block.tags) {
+        const tagSeries = await Tag.findById(tag).select('series.id').exec();
+        seriesInTags = [...new Set([...seriesInTags, ...tagSeries.series.map(series => series.id)])];
+    }
+
+    let query = Serie.find({ 
+        _id: { $in: seriesInTags }, 
+        status: 'Published' 
+    });
+
+    const langContent = 'both'; // Assuming you handle the language in a similar way in Node.js
+    if (langContent !== 'both') {
+        query = query.where('language_id').equals(langContent);
+    }
+
+    const series = await query
+        .sort([[order[0], order[1]]])
+        .limit(parseInt(block.quantity))
+        .select('id name image')
+        .exec();
+
+    return series;
+}
+
+
+
+
+function getBlockContentOrder(order) {
+    switch (order) {
+        case '1':
+            return ['created_at', 'desc'];
+        case '2':
+        case '3':
+            return ['name', 'asc'];
+        case '4':
+            return ['updated_at', 'desc'];
+        case '5':
+            return ['_id', 'desc']; // Just for registration
+        default:
+            return ['name', 'asc'];
+    }
+}
