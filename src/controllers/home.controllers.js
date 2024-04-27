@@ -36,8 +36,8 @@ export const getHomeBlocks = async (req, res) => {
         const language = req.params.language || 'es'
         // Consulta para obtener los bloques de configuración necesarios
         const [blocksData] = await pool.query("SELECT value FROM configuration_blocks WHERE name IN ('blocks', CONCAT('desktop_', ?))", [language]);
-           
-        const allBlocks  = JSON.parse(blocksData[0].value).reduce((acc, cur) => {
+
+        const allBlocks = JSON.parse(blocksData[0].value).reduce((acc, cur) => {
             acc[cur.id] = cur;
             return acc;
         }, {});
@@ -45,43 +45,46 @@ export const getHomeBlocks = async (req, res) => {
         //      block.id
         //      );
         const blocksIDs = JSON.parse(blocksData[1].value).map(block => block.id);
-        
+
         // Crear un objeto donde las claves son los ids de los bloques y los valores son los bloques en sí
-            const blocksDataMap = JSON.parse(blocksData[0].value).reduce((acc, block) => {
-                acc[block.id] = block;
-                return acc;
-            }, {});
-        
-      
+        const blocksDataMap = JSON.parse(blocksData[0].value).reduce((acc, block) => {
+            acc[block.id] = block;
+            return acc;
+        }, {});
 
-            const blocks = [];
 
-            for (const blockID of blocksIDs) {
-                const blockData = blocksDataMap[blockID];
-                if (blockData) {
-                    let block = {
-                        name: blockData.name,
-                        type: blockData.type,
-                        id: blockData.id,
-                    };
-            
-                    if (isContentBlock(blockData.type)) {
-                        try {
-                            block.series = await getBlockContent(blockData);
-                        } catch (error) {
-                            console.error('Error fetching block content:', error);
-                            block.series = [];
+
+        const blocks = [];
+
+        for (const blockID of blocksIDs) {
+            const blockData = blocksDataMap[blockID];
+            if (blockData) {
+                let block = {
+                    name: blockData.name,
+                    type: blockData.type,
+                    id: blockData.id,
+                };
+
+                if (isContentBlock(blockData.type)) {
+                    try {
+                        block.series = await getBlockContent(blockData);
+                        if (block.type == 2) {
+                            console.log(block)
                         }
-                    } else {
-                        block = getBlockBanner(blockData, block);
+                    } catch (error) {
+                        console.error('Error fetching block content:', error);
+                        block.series = [];
                     }
-            
-                    blocks.push(block);
+                } else {
+                    block = getBlockBanner(blockData, block);
                 }
+
+                blocks.push(block);
             }
-            
-            res.json(blocks);
-                    
+        }
+
+        res.json(blocks);
+
     } catch (error) {
 
 
@@ -106,7 +109,7 @@ async function getBlockContent(block) {
         const handler = typeHandlers[block.type];
         try {
             const result = await handler(block);
-            console.log(result)
+
             return result;
         } catch (error) {
             console.error('Error in handler:', error);
@@ -127,22 +130,54 @@ async function getSeriesByGroup(block) {
     return seriesData;
 }
 
-
 async function getSeriesByGroupSchedule(block) {
     const reversedSeries = block.series.slice().reverse();
-   
+
     let series = [];
 
     if (reversedSeries.length > 0) {
         const [seriesData] = await pool.query("SELECT id,name,image FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
-        
+
         series = seriesData;
-        
+
     }
-   
+
     return series;
 }
 
+async function getSeriesByTags(block) {
+    const tags = block.tags;
+
+    let series = [];
+
+    if (tags.length > 0) {
+        let seriesInTags = [];
+
+        for (const tag of tags) {
+            try {
+                const tagSeries = await pool.query("SELECT serie_id FROM series_tags WHERE tag_id = ?", [tag]);
+
+                if (!tagSeries || tagSeries.length === 0) {
+                    continue;
+                }
+                // Obtenemos los IDs de las series de cada tag (son arreglos de arreglos)
+                const serieIds = tagSeries.flatMap(series => series.map(item => item.serie_id));
+                seriesInTags = [...new Set([...seriesInTags, ...serieIds])];
+            } catch (error) {
+                console.error("Error fetching tag series:", error);
+            }
+        }
+
+        if (seriesInTags.length > 0) {
+
+            const [seriesData] = await pool.query("SELECT id, name, image FROM series WHERE id IN (?) AND status = 'Published'", [seriesInTags]);
+
+            series = seriesData;
+        }
+    }
+
+    return series;
+}
 
 
 function getBlockBanner(blockContent, block) {
@@ -165,9 +200,9 @@ function getBlockBanner(blockContent, block) {
 async function getSeriesByGenre(block) {
     const order = getBlockContentOrder(block.order);
 
-    let query = Serie.find({ 
-        genre_id: parseInt(block.genre), 
-        status: { $ne: 'Deleted' } 
+    let query = Serie.find({
+        genre_id: parseInt(block.genre),
+        status: { $ne: 'Deleted' }
     });
 
     const langContent = 'both'; // Assuming you handle the language in a similar way in Node.js
@@ -183,36 +218,6 @@ async function getSeriesByGenre(block) {
 
     return series;
 }
-
-async function getSeriesByTags(block) {
-    const order = getBlockContentOrder(block.order);
-
-    let seriesInTags = [];
-
-    for (const tag of block.tags) {
-        const tagSeries = await Tag.findById(tag).select('series.id').exec();
-        seriesInTags = [...new Set([...seriesInTags, ...tagSeries.series.map(series => series.id)])];
-    }
-
-    let query = Serie.find({ 
-        _id: { $in: seriesInTags }, 
-        status: 'Published' 
-    });
-
-    const langContent = 'both'; // Assuming you handle the language in a similar way in Node.js
-    if (langContent !== 'both') {
-        query = query.where('language_id').equals(langContent);
-    }
-
-    const series = await query
-        .sort([[order[0], order[1]]])
-        .limit(parseInt(block.quantity))
-        .select('id name image')
-        .exec();
-
-    return series;
-}
-
 
 
 
