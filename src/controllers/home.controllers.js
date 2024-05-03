@@ -68,9 +68,7 @@ export const getHomeBlocks = async (req, res) => {
                 if (isContentBlock(blockData.type)) {
                     try {
                         block.series = await getBlockContent(blockData);
-                        if (block.type == 2) {
-                            console.log(block)
-                        }
+                        
                     } catch (error) {
                         console.error('Error fetching block content:', error);
                         block.series = [];

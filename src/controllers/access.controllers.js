@@ -34,7 +34,22 @@ export const login = async (req, res) => {
             username: user.username,
             source: user.source,
             type: user.type,
-            avatar: user.avatar
+            avatar: user.avatar,
+            tagline: user.tagline,
+            web:user.web,
+            bio:user.bio,
+            facebook:user.facebook,
+            twitter: user.twitter,
+            instagram: user.instagram,
+            birthday: user.birthday,
+            location: user.location,
+            fav_serie_1: user.fav_serie_1,
+            fav_serie_2: user.fav_serie_2,
+            fav_serie_3: user.fav_serie_3,
+            adult_content:user.adult_content,
+            akaya_coins: user.akaya_coins,
+            bonus_coins:user.bonus_coins,
+            header_img:user.header_img
         }, 'tu_secreto_jwt', { expiresIn: '1h' });
 
         const data = {
@@ -47,7 +62,22 @@ export const login = async (req, res) => {
             username: user.username,
             source: user.source,
             type: user.type,
-            avatar: user.avatar
+            avatar: user.avatar,
+            tagline: user.tagline,
+            web:user.web,
+            bio:user.bio,
+            facebook:user.facebook,
+            twitter: user.twitter,
+            instagram: user.instagram,
+            birthday: user.birthday,
+            location: user.location,
+            fav_serie_1: user.fav_serie_1,
+            fav_serie_2: user.fav_serie_2,
+            fav_serie_3: user.fav_serie_3,
+            adult_content:user.adult_content,
+            akaya_coins: user.akaya_coins,
+            bonus_coins:user.bonus_coins,
+            header_img:user.header_img
         }
 
         res.cookie("token", token)
