@@ -7,7 +7,7 @@ const router = Router()
 router.get('/usuarios',verifyToken,getUsuarios)
 router.get('/usuarios/:id',verifyToken,getUsuario)
 router.post('/usuarios',verifyToken,createUsuario)
-router.patch('/usuarios/:id',verifyToken,putUsuarios)
+router.patch('/usuarios/:id',putUsuarios)
 router.delete('/usuarios/:id',verifyToken,deleteUsuarios)
  
 export default router
