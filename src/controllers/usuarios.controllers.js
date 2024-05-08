@@ -151,7 +151,8 @@ export const createUsuario = async (req, res) => {
 export const putUsuarios = async (req, res) => {
 
   const { id } = req.params;
-  const { first_name, last_name, email, username, password, source, type } = req.body;
+  const { first_name, last_name, email, username, password, source, type,birthday,facebook,twitter,instagram,web,tagline } = req.body;
+
 
   if (first_name && !isValidString(first_name)) {
     return res.status(400).send({ error: 'First name is not a valid string' });
@@ -196,9 +197,10 @@ export const putUsuarios = async (req, res) => {
   if (password) {
 
     try {
+
       const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
-      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), password=IFNULL(?,password), source=IFNULL(?,source), type=IFNULL(?,type), updated_at=NOW() WHERE id=?',
-        [first_name, last_name, email, username, hashedPassword, source, type, id]);
+      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), password=IFNULL(?,password), source=IFNULL(?,source), type=IFNULL(?,type),  updated_at=NOW(), birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline) WHERE id=?',
+        [first_name, last_name, email, username, hashedPassword, source, type,birthday,facebook,twitter,instagram,web,tagline, id]);
 
       if (result.affectedRows <= 0) return res.status(404).json({
         message: "Usuario no encontrado"
@@ -216,8 +218,8 @@ export const putUsuarios = async (req, res) => {
   } else {
 
     try {
-      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), source=IFNULL(?,source), type=IFNULL(?,type), updated_at=NOW() WHERE id=?',
-        [first_name, last_name, email, username, source, type, id]);
+      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), source=IFNULL(?,source), type=IFNULL(?,type), updated_at=NOW(),birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline) WHERE id=?',
+        [first_name, last_name, email, username, source, type,birthday,facebook,twitter,instagram,web,tagline, id]);
 
       if (result.affectedRows <= 0) return res.status(404).json({
         message: "Usuario no encontrado"

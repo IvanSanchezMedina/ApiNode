@@ -5,6 +5,7 @@ import accessRoutes from "../src/routes/access.routes.js"
 import userSession  from "./controllers/sessions.controllers.js"
 import seriesRoutes from "../src/routes/series.routes.js"
 import homeRoutes from "../src/routes/home.routes.js"
+import otherDataRoutes from "../src/routes/otherData.routes.js"
 import cors from "cors"
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(usuariosRoutes)
 app.use(accessRoutes)
 app.use(seriesRoutes)
 app.use(homeRoutes)
+app.use(otherDataRoutes)
 
 app.use((req, res, next)=>{
 res.status(404).send({message: 'No se encontró la ruta'})
