@@ -33,7 +33,7 @@ export const getSerie = async (req,res)=> {
 
         if (rows.length <= 0) return res.json({message: "La serie no existe"});
 
-        res.json(rows)
+        res.json(rows[0])
     } catch (error) {
         return res.status(500).json({
             message: "Existio un error"
