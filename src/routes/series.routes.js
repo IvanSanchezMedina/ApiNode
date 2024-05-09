@@ -4,7 +4,7 @@ import { getSeries, getSerie } from "../controllers/series.controllers.js";
 
 const router = Router()
 
-router.get( '/series',verifyToken, getSeries)
+// router.get( '/series',verifyToken, getSeries)
 router.get('/serie/:id',verifyToken,getSerie)
 
 export default router

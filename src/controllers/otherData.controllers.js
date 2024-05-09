@@ -10,3 +10,14 @@ export const getCountries = async(req, res)=>{
             return res.status(500).json({ error: 'Failed to get Countries' });
          }
 }
+
+export const getSeries = async(req, res)=>{
+    try {
+        const [result] = await pool.query("SELECT * FROM series ORDER BY id ASC");
+        res.json(result);
+        
+         }
+         catch(error){
+            return res.status(500).json({ error: 'Failed to get Series' });
+         }
+}

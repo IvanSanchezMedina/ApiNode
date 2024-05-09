@@ -151,7 +151,7 @@ export const createUsuario = async (req, res) => {
 export const putUsuarios = async (req, res) => {
 
   const { id } = req.params;
-  const { first_name, last_name, email, username, password, source, type, birthday, facebook, twitter, instagram, web, tagline, location, adult_content, profile_with_activity, bio } = req.body;
+  const { first_name, last_name, email, username, password, source, type, birthday, facebook, twitter, instagram, web, tagline, location, adult_content, profile_with_activity, bio, fav_serie_1, fav_serie_2, fav_serie_3 } = req.body;
   console.log(req.body)
 
   if (first_name && !isValidString(first_name)) {
@@ -199,8 +199,8 @@ export const putUsuarios = async (req, res) => {
     try {
 
       const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
-      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), password=IFNULL(?,password), source=IFNULL(?,source), type=IFNULL(?,type),  updated_at=NOW(), birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline), location=IFNULL(?,location), bio=IFNULL(?,bio), adult_content=IFNULL(?,adult_content), profile_with_activity=IFNULL(?,profile_with_activity)  WHERE id=?',
-        [first_name, last_name, email, username, hashedPassword, source, type, birthday, facebook, twitter, instagram, web, tagline, location, bio, adult_content, profile_with_activity, id]);
+      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), password=IFNULL(?,password), source=IFNULL(?,source), type=IFNULL(?,type),  updated_at=NOW(), birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline), location=IFNULL(?,location), bio=IFNULL(?,bio), adult_content=IFNULL(?,adult_content), profile_with_activity=IFNULL(?,profile_with_activity), fav_serie_1=IFNULL(?,fav_serie_1), fav_serie_2=IFNULL(?,fav_serie_2),fav_serie_3=IFNULL(?,fav_serie_3)  WHERE id=?',
+        [first_name, last_name, email, username, hashedPassword, source, type, birthday, facebook, twitter, instagram, web, tagline, location, bio, adult_content, profile_with_activity, fav_serie_1, fav_serie_2, fav_serie_3, id]);
 
       if (result.affectedRows <= 0) return res.status(404).json({
         message: "Usuario no encontrado"
@@ -218,8 +218,8 @@ export const putUsuarios = async (req, res) => {
   } else {
 
     try {
-      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), source=IFNULL(?,source), type=IFNULL(?,type), updated_at=NOW(),birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline), location=IFNULL(?,location), bio=IFNULL(?,bio), adult_content=IFNULL(?,adult_content),  profile_with_activity=IFNULL(?,profile_with_activity) WHERE id=?',
-        [first_name, last_name, email, username, source, type, birthday, facebook, twitter, instagram, web, tagline, location, bio, adult_content, profile_with_activity, id]);
+      const [result] = await pool.query('UPDATE users SET first_name=IFNULL(?,first_name), last_name=IFNULL(?,last_name), email=IFNULL(?,email), username=IFNULL(?,username), source=IFNULL(?,source), type=IFNULL(?,type), updated_at=NOW(),birthday=IFNULL(?,birthday), facebook=IFNULL(?,facebook), twitter=IFNULL(?,twitter), instagram=IFNULL(?,instagram), web=IFNULL(?,web), tagline=IFNULL(?,tagline), location=IFNULL(?,location), bio=IFNULL(?,bio), adult_content=IFNULL(?,adult_content),  profile_with_activity=IFNULL(?,profile_with_activity), fav_serie_1=IFNULL(?,fav_serie_1), fav_serie_2=IFNULL(?,fav_serie_2),fav_serie_3=IFNULL(?,fav_serie_3) WHERE id=?',
+        [first_name, last_name, email, username, source, type, birthday, facebook, twitter, instagram, web, tagline, location, bio, adult_content, profile_with_activity, fav_serie_1, fav_serie_2, fav_serie_3, id]);
 
       if (result.affectedRows <= 0) return res.status(404).json({
         message: "Usuario no encontrado"
@@ -302,7 +302,7 @@ export const putUsuarios = async (req, res) => {
 
     } catch (error) {
       return res.status(500).json({
-        message: "Algo salio mal al guardar el usuario"
+        message: error
       })
     }
 
