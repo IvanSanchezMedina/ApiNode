@@ -8,7 +8,7 @@ const options = {
     port: 3306,
     user: 'root',
     password: '', // Agrega tu contraseña aquí si tienes una
-    database: 'akaya_new',
+    database: 'akaya_local',
     createDatabaseTable: true, // Esto creará la tabla de sesión automáticamente si no existe
     schema: {
         tableName: 'sessions' // Puedes personalizar el nombre de la tabla de sesiones si lo deseas

@@ -259,7 +259,6 @@ export const register = async (req, res) => {
             username,
             source,
             type,
-            avatar
           
         }, 'tu_secreto_jwt', { expiresIn: '1h' });
 

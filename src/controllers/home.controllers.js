@@ -123,7 +123,7 @@ async function getSeriesByGroup(block) {
 
     const reversedSeries = block.series.slice().reverse();
 
-    const [seriesData] = await pool.query("SELECT id,name,image FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
+    const [seriesData] = await pool.query("SELECT id,name,image,description,tagline,credits,genre_id FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
 
     return seriesData;
 }
@@ -134,7 +134,7 @@ async function getSeriesByGroupSchedule(block) {
     let series = [];
 
     if (reversedSeries.length > 0) {
-        const [seriesData] = await pool.query("SELECT id,name,image FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
+        const [seriesData] = await pool.query("SELECT id,name,image,description,tagline,credits,genre_id FROM series WHERE id IN (?) AND status != 'Deleted' ORDER BY FIELD(id, ?)", [reversedSeries, reversedSeries]);
 
         series = seriesData;
 
@@ -168,7 +168,7 @@ async function getSeriesByTags(block) {
 
         if (seriesInTags.length > 0) {
 
-            const [seriesData] = await pool.query("SELECT id, name, image FROM series WHERE id IN (?) AND status = 'Published'", [seriesInTags]);
+            const [seriesData] = await pool.query("SELECT id, name, image,description,tagline,credits,genre_id FROM series WHERE id IN (?) AND status = 'Published'", [seriesInTags]);
 
             series = seriesData;
         }
